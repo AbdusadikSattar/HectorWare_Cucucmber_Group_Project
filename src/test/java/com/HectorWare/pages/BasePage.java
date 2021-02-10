@@ -15,40 +15,26 @@ import java.util.List;
 
 public abstract  class BasePage {
 
-    @FindBy(css = "span.title-level-1")
-    public List<WebElement> menuOptions; //-->List:because we have more than one
-
-    @FindBy(css = "div[class='loader-mask shown']")
-    @CacheLookup
-    protected WebElement loaderMask;
-
-    @FindBy(css = "h1[class='oro-subtitle']")
-    public WebElement pageSubTitle;
-
-    @FindBy(css = "#user-menu > a")
-    public WebElement userName;
-
-    @FindBy(linkText = "Logout")
-    public WebElement logOutLink;
-
-    @FindBy(linkText = "My User")
-    public WebElement myUser;
-
     public BasePage() {
         PageFactory.initElements(Driver.get(), this);
     }
 
 
-    /**
-     * @return page name, for example: Dashboard
-     */
-    public String getPageSubTitle() {
-        //ant time we are verifying page name, or page subtitle, loader mask appears
-        waitUntilLoaderScreenDisappear();
-//        BrowserUtils.waitForStaleElement(pageSubTitle);
-        return pageSubTitle.getText();
-    }
+    @FindBy(css = "//*[@id = 'appmenu']/*")
+    public List<WebElement> menuOptions; //-->List:because we have more than one
 
+    @FindBy(xpath = "//*[@class='mask icon-loading']")      // +++
+    @CacheLookup
+    protected WebElement loaderMask;
+
+    @FindBy(xpath = "//*[@*='user-status-menu-item__header']")    //+++
+    public WebElement myUser;
+
+    @FindBy(css = "[data-id = 'logout']")    //+++
+    public WebElement logOutLink;
+
+    @FindBy (xpath = "//div[@class = 'avatardiv avatardiv-shown']")   //+++
+    public WebElement userName;
 
     /**
      * Waits until loader screen present. If loader screen will not pop up at all,
@@ -62,40 +48,27 @@ public abstract  class BasePage {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public String getUserName(){
         waitUntilLoaderScreenDisappear();
         BrowserUtils.waitForVisibility(userName, 5);
-        return userName.getText();
+        return myUser.getText();
     }
-
-
 
     public void logOut(){
         BrowserUtils.waitFor(2);
         BrowserUtils.clickWithJS(userName);
         BrowserUtils.clickWithJS(logOutLink);
     }
-    public void goToMyUser(){
-        waitUntilLoaderScreenDisappear();
-        BrowserUtils.waitForClickablility(userName, 5).click();
-        BrowserUtils.waitForClickablility(myUser, 5).click();
-
-    }
 
     /**
      * This method will navigate user to the specific module in vytrack application.
      * For example: if tab is equals to Activities, and module equals to Calls,
      * Then method will navigate user to this page: http://qa2.vytrack.com/call/
-     *
-     * @param tab
-     * @param module
      */
-    public void navigateToModule(String tab, String module) {
-        String tabLocator = "//span[normalize-space()='" + tab + "' and contains(@class, 'title title-level-1')]";
-        String moduleLocator = "//span[normalize-space()='" + module + "' and contains(@class, 'title title-level-2')]";
+    public void navigateToModule(String tab) {
+        String tabLocator = "//ul[@id='appmenu']/li/a[@aria-label = '"+ tab +"']";
         try {
             BrowserUtils.waitForClickablility(By.xpath(tabLocator), 5);
             WebElement tabElement = Driver.get().findElement(By.xpath(tabLocator));
@@ -103,15 +76,7 @@ public abstract  class BasePage {
         } catch (Exception e) {
             BrowserUtils.clickWithWait(By.xpath(tabLocator), 5);
         }
-        try {
-            BrowserUtils.waitForPresenceOfElement(By.xpath(moduleLocator), 5);
-            BrowserUtils.waitForVisibility(By.xpath(moduleLocator), 5);
-            BrowserUtils.scrollToElement(Driver.get().findElement(By.xpath(moduleLocator)));
-            Driver.get().findElement(By.xpath(moduleLocator)).click();
-        } catch (Exception e) {
-//            BrowserUtils.waitForStaleElement(Driver.get().findElement(By.xpath(moduleLocator)));
-            BrowserUtils.clickWithTimeOut(Driver.get().findElement(By.xpath(moduleLocator)),  5);
-        }
+
     }
 
 }
